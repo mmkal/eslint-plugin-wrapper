@@ -1,0 +1,28 @@
+{
+  "name": "eslint-plugin-dynamic",
+  "version": "0.0.0",
+  "description": "Write project-specific rules, in your own eslint config file",
+  "main": "index.js",
+  "files": ["index.js"],
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmkal/eslint-plugin-dynamic.git"
+  },
+  "keywords": [
+    "eslint"
+  ],
+  "author": "mmkal",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/mmkal/eslint-plugin-dynamic/issues"
+  },
+  "homepage": "https://github.com/mmkal/eslint-plugin-dynamic#readme",
+  "devDependencies": {
+    "@types/eslint": "^7.28.0",
+    "eslint": "^7.32.0",
+    "jest": "^27.2.0"
+  }
+}

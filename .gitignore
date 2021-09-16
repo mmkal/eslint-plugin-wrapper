@@ -1,0 +1,9 @@
+# Ignore everything by default, whitelist what should be kept
+
+*
+!.git*
+!LICENSE
+!README.md
+!package.json
+!pnpm-lock.yaml
+!*.js
