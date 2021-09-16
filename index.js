@@ -2,17 +2,17 @@ const defaultPluginKey = Symbol('defaultPluginKey')
 
 class DynamicPlugin {
   constructor() {
-    /** @type {Record<string, typeof import('./index.d')>} */
-    // by default aggressively warn user that they've failed to set the plugin up properly
+    /** @type {Record<string, typeof import('./index')>} */
+    // if no plugins are added, aggressively warn user that they've failed to set the plugin up properly
     this.plugins = {
       [defaultPluginKey]: {
         rules: {
           /** @param {import('eslint').Rule.RuleContext} context  */
-          'bad-setup': {
+          'not-setup': {
             create: context => {
               context.report({
                 message:
-                  'You must call `dynamic.plugin = ...` before using this plugin',
+                  'You must call `dynamic.add(...)` before using this plugin',
                 loc: {line: 1, column: 0},
               })
               return {}
@@ -23,13 +23,10 @@ class DynamicPlugin {
     }
   }
 
-  /**
-   * @param {{name: string}} options
-   * @param {typeof import('./index')} plugin
-   */
-  addPlugin(options, plugin) {
+  /** @param {Record<string, typeof import('./index')>} plugins */
+  add(plugins) {
     delete this.plugins[defaultPluginKey]
-    this.plugins[options.name] = plugin
+    Object.assign(this.plugins, plugins)
   }
 
   /** @param {(opts: {pluginName: string; plugin: typeof import('./index'); ruleName: string; rule: import('eslint').Rule.RuleModule})} getValue */
@@ -76,7 +73,7 @@ class DynamicPlugin {
       ),
       ...Object.fromEntries(
         Object.keys(this.plugins).map(pluginName => [
-          `${pluginName}.warnings`,
+          `${pluginName}.all.warn`,
           {
             rules: this._buildRules(
               {[pluginName]: this.plugins[pluginName]},
@@ -89,11 +86,11 @@ class DynamicPlugin {
   }
   get processors() {
     return {}
-    return this.plugin.processors
+    // return this.plugins[*].processors
   }
   get environments() {
     return {}
-    return this.plugin.environments
+    // return this.plugin[*].environments
   }
 }
 
