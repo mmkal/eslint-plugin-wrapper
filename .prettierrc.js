@@ -7,5 +7,4 @@ module.exports = {
   trailingComma: 'all',
   bracketSpacing: false,
   endOfLine: 'auto',
-  printWidth: 120,
 }
