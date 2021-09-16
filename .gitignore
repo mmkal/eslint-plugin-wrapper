@@ -2,8 +2,12 @@
 
 *
 !.git*
+
 !LICENSE
 !README.md
+
 !package.json
 !pnpm-lock.yaml
+
 !*.js
+!*.ts

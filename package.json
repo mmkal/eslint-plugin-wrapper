@@ -4,7 +4,8 @@
   "description": "Write project-specific rules, in your own eslint config file",
   "main": "index.js",
   "files": [
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "scripts": {
     "lint": "eslint .",
