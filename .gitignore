@@ -1,13 +1,7 @@
-# Ignore everything by default, whitelist what should be kept
+node_modules
+*.log
+*.tgz
+package-lock.json
+yarn.lock
 
-*
-!.git*
-
-!LICENSE
-!README.md
-
-!package.json
-!pnpm-lock.yaml
-
-!*.js
-!*.ts
+*ignoreme*
