@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "Write project-specific rules, in your own eslint config file",
   "main": "index.js",
+  "types": "index.d.ts",
   "files": [
     "index.js",
     "index.d.ts"
