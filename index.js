@@ -8,13 +8,90 @@ class EslintPluginWrapper {
 
     this.addPlugins({
       default: {
+        configs: {
+          recommended: {
+            rules: {
+              'default/eslint-comments': 'error',
+            },
+          },
+        },
         rules: {
-          'not-setup': {
+          'eslint-comments': {
+            meta: {
+              docs: {
+                description:
+                  'Detect and fix incorrectly-prefixed wrapped rules',
+                url: 'https://github.com/mmkal/eslint-plugin-wrapper#README',
+                recommended: true,
+              },
+              fixable: 'code',
+              schema: [
+                {
+                  type: 'object',
+                  properties: {
+                    directives: {
+                      type: 'array',
+                      items: {type: 'string'},
+                    },
+                    prefixReplacements: {
+                      type: 'object',
+                    },
+                  },
+                },
+              ],
+            },
             create: context => {
-              context.report({
-                message:
-                  'You must call `wrapper.add(...)` before using this plugin',
-                loc: {line: 1, column: 0},
+              const comments = context.getSourceCode().getAllComments()
+              const directives = (context.options &&
+                context.options[0] &&
+                context.options[0].directives) || [
+                'eslint-disable',
+                'eslint-enable',
+                'eslint-disable-next-line',
+              ]
+              comments.forEach(c => {
+                const matchedDirective = directives.find(d =>
+                  c.value.trim().startsWith(d + ' '),
+                )
+
+                if (!matchedDirective) {
+                  return {}
+                }
+
+                /** @type {Record<string, string>} */
+                const prefixReplacements = {
+                  ...Object.fromEntries(
+                    Object.keys(this.plugins).map(pluginName => [
+                      `${pluginName}/`,
+                      `${this.pluginName}/${pluginName}/`,
+                    ]),
+                  ),
+                  ...(context.options &&
+                    context.options[0] &&
+                    context.options[0].prefixReplacements),
+                }
+                const updatedComment = Object.entries(prefixReplacements)
+                  .sort((a, b) => b[0].length - a[0].length)
+                  .reduce((comment, [withoutPrefix, withPrefix]) => {
+                    return comment
+                      .split(' ' + withoutPrefix)
+                      .join(' ' + withPrefix)
+                  }, c.value)
+
+                if (updatedComment !== c.value) {
+                  context.report({
+                    message: `eslint comment incorrectly prefixed. Replace "${c.value.trim()}" with "${updatedComment.trim()}"`,
+                    loc: c.loc,
+                    fix: fixer =>
+                      fixer.replaceTextRange(
+                        [
+                          c.range[0] + 2,
+                          c.type === 'Block' ? c.range[1] - 2 : c.range[1],
+                        ],
+                        updatedComment,
+                      ),
+                  })
+                }
               })
               return {}
             },
@@ -46,7 +123,6 @@ class EslintPluginWrapper {
 
   /** @param {Record<string, import('.').Plugin>} plugins */
   addPlugins(plugins) {
-    delete this.plugins.default
     Object.assign(this.plugins, plugins)
   }
 
