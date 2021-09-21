@@ -1,13 +1,14 @@
-const defaultPluginKey = Symbol('defaultPluginKey')
+class EslintPluginWrapper {
+  /** @param {{pluginName: string}} opts */
+  constructor(opts) {
+    this.pluginName = opts.pluginName
 
-class DynamicPlugin {
-  constructor() {
-    /** @type {Record<string, typeof import('./index')>} */
-    // if no plugins are added, aggressively warn user that they've failed to set the plugin up properly
-    this.plugins = {
-      [defaultPluginKey]: {
+    /** @type {Record<string, import('.').Plugin>} */
+    this.plugins = {}
+
+    this.addPlugins({
+      default: {
         rules: {
-          /** @param {import('eslint').Rule.RuleContext} context  */
           'not-setup': {
             create: context => {
               context.report({
@@ -20,78 +21,152 @@ class DynamicPlugin {
           },
         },
       },
-    }
+    })
   }
 
-  /** @param {Record<string, typeof import('./index')>} plugins */
-  add(plugins) {
-    delete this.plugins[defaultPluginKey]
-    Object.assign(this.plugins, plugins)
-  }
-
-  /** @param {(opts: {pluginName: string; plugin: typeof import('./index'); ruleName: string; rule: import('eslint').Rule.RuleModule})} getValue */
-  _buildRules(plugins, getEntry) {
-    return Object.assign(
-      {},
-      ...Object.entries(plugins).map(([pluginName, plugin]) =>
-        Object.fromEntries(
-          Object.entries(plugin.rules || {}).map(([ruleName, rule]) =>
-            getEntry({pluginName, pluginName, ruleName, rule}),
-          ),
-        ),
-      ),
-    )
+  get EslintPluginWrapper() {
+    return EslintPluginWrapper
   }
 
   get rules() {
-    return this._buildRules(this.plugins, opts => [opts.ruleName, opts.rule])
+    return this.buildRules()
   }
+
   get configs() {
-    return {
-      all: {
-        rules: this._buildRules(this.plugins, opts => [
-          `dynamic/${opts.ruleName}`,
-          'error',
-        ]),
-      },
-      warnings: {
-        rules: this._buildRules(this.plugins, opts => [
-          `dynamic/${opts.ruleName}`,
-          'warn',
-        ]),
-      },
-      ...Object.fromEntries(
-        Object.keys(this.plugins).map(pluginName => [
-          `${pluginName}.all`,
-          {
-            rules: this._buildRules(
-              {[pluginName]: this.plugins[pluginName]},
-              opts => [`dynamic/${opts.ruleName}`, 'error'],
-            ),
-          },
-        ]),
-      ),
-      ...Object.fromEntries(
-        Object.keys(this.plugins).map(pluginName => [
-          `${pluginName}.all.warn`,
-          {
-            rules: this._buildRules(
-              {[pluginName]: this.plugins[pluginName]},
-              opts => [`dynamic/${opts.ruleName}`, 'warn'],
-            ),
-          },
-        ]),
-      ),
-    }
+    return this.buildConfigs()
   }
+
   get processors() {
-    return {}
-    // return this.plugins[*].processors
+    return this.buildProcessors()
   }
+
   get environments() {
-    return {}
-    // return this.plugin[*].environments
+    return this.buildEnvironments()
+  }
+
+  /** @param {Record<string, import('.').Plugin>} plugins */
+  addPlugins(plugins) {
+    delete this.plugins.default
+    Object.assign(this.plugins, plugins)
+  }
+
+  /** Given a rule info, get the correct string reference for it in a config (i.e. must include this plugin's name prefix) */
+  configRuleReference(info) {
+    return `${this.pluginName}/${info.pluginName}/${info.ruleName}`
+  }
+
+  buildRules() {
+    return ruleDict(this.plugins, opts => [
+      `${opts.pluginName}/${opts.ruleName}`,
+      opts.rule,
+    ])
+  }
+
+  buildConfigs() {
+    const configs = {}
+    Object.defineProperty(configs, 'all', {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        return {
+          rules: ruleDict(this.plugins, opts => [
+            this.configRuleReference(opts),
+            'error',
+          ]),
+        }
+      },
+    })
+    Object.defineProperty(configs, 'all.warn', {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        return {
+          rules: ruleDict(this.plugins, opts => [
+            this.configRuleReference(opts),
+            'warn',
+          ]),
+        }
+      },
+    })
+
+    Object.entries(this.plugins).forEach(([pluginName, plugin]) => {
+      Object.entries(plugin.configs || {}).forEach(([configName, config]) => {
+        Object.defineProperty(configs, `${pluginName}.all`, {
+          configurable: true,
+          enumerable: true,
+          get: () => ({
+            rules: ruleDict({[pluginName]: plugin}, opts => [
+              this.configRuleReference(opts),
+              'error',
+            ]),
+          }),
+        })
+        Object.defineProperty(configs, `${pluginName}.all.warn`, {
+          configurable: true,
+          enumerable: true,
+          get: () => ({
+            rules: ruleDict({[pluginName]: plugin}, opts => [
+              this.configRuleReference(opts),
+              'warn',
+            ]),
+          }),
+        })
+
+        Object.defineProperty(configs, `${pluginName}.${configName}`, {
+          configurable: true,
+          enumerable: true,
+          get: () => {
+            return {
+              // don't do ...config, it's not really possible to support plugins' configs extending other configs
+              // especially with the crazy eslint naming conventions.
+              rules: Object.fromEntries(
+                Object.entries(config.rules).map(([key, val]) =>
+                  key.startsWith(pluginName)
+                    ? [`${this.pluginName}/${key}`, val]
+                    : [key, val],
+                ),
+              ),
+            }
+          },
+        })
+      })
+    })
+
+    return configs
+  }
+
+  buildProcessors() {
+    return Object.assign(
+      {},
+      ...Object.values(this.plugins).map(plugin => plugin.processors),
+    )
+  }
+
+  buildEnvironments() {
+    return Object.assign(
+      {},
+      ...Object.values(this.plugins).map(plugin => plugin.environments),
+    )
   }
 }
 
-module.exports = new DynamicPlugin()
+/**
+ * For a dictionary of plugins and a function to get entries, build a dictionary of rules.
+ *
+ * @param {Record<string, import('.').Plugin>} plugins
+ * @param {(opts: {pluginName: string; plugin: import('.').Plugin; ruleName: string; rule: import('eslint').Rule.RuleModule}) => [string, any]} getEntry
+ */
+function ruleDict(plugins, getEntry) {
+  return Object.assign(
+    {},
+    ...Object.entries(plugins).map(([pluginName, plugin]) =>
+      Object.fromEntries(
+        Object.entries(plugin.rules || {}).map(([ruleName, rule]) =>
+          getEntry({pluginName, pluginName, ruleName, rule}),
+        ),
+      ),
+    ),
+  )
+}
+
+module.exports = new EslintPluginWrapper({pluginName: 'dynamic'})
