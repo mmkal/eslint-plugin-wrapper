@@ -89,6 +89,32 @@ class EslintPluginWrapper {
       },
     })
 
+    Object.defineProperty(configs, 'recommended', {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        return {
+          rules: Object.assign(
+            {},
+            ...Object.entries(this.plugins).map(([pluginName, plugin]) => {
+              const config = plugin.configs && plugin.configs.recommended
+              if (!config || !config.rules) {
+                return null
+              }
+
+              return Object.fromEntries(
+                Object.entries(config.rules).map(([key, val]) =>
+                  key.startsWith(pluginName)
+                    ? [`${this.pluginName}/${key}`, val]
+                    : [key, val],
+                ),
+              )
+            }),
+          ),
+        }
+      },
+    })
+
     Object.entries(this.plugins).forEach(([pluginName, plugin]) => {
       Object.entries(plugin.configs || {}).forEach(([configName, config]) => {
         Object.defineProperty(configs, `${pluginName}.all`, {
