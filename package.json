@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-wrapper",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Write project-specific rules, in your own eslint config file",
   "main": "index.js",
   "types": "index.d.ts",
