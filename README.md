@@ -1,11 +1,11 @@
-# eslint-plugin-dynamic
+# eslint-plugin-wrapper
 
 Write project-specific rules, in your own eslint config file.
 
 ## Installation
 
 ```
-npm install eslint-plugin-dynamic
+npm install eslint-plugin-wrapper
 ```
 
 ## Usage
@@ -13,9 +13,9 @@ npm install eslint-plugin-dynamic
 In your `.eslintrc.js` file:
 
 ```js
-const eslintPluginDynamic = require('eslint-plugin-dynamic')
+const wrapper = require('eslint-plugin-wrapper')
 
-eslintPluginDynamic.addPlugins({
+wrapper.addPlugins({
   'my-project': {
     rules: {
       'no-literals': {
@@ -35,8 +35,8 @@ eslintPluginDynamic.addPlugins({
 })
 
 module.exports = {
-  plugins: ['dynamic'],
-  extends: ['plugin:dynamic/all'],
+  plugins: ['wrapper'],
+  extends: ['plugin:wrapper/all'],
 }
 ```
 

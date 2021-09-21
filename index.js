@@ -13,7 +13,7 @@ class EslintPluginWrapper {
             create: context => {
               context.report({
                 message:
-                  'You must call `dynamic.add(...)` before using this plugin',
+                  'You must call `wrapper.add(...)` before using this plugin',
                 loc: {line: 1, column: 0},
               })
               return {}
@@ -169,4 +169,4 @@ function ruleDict(plugins, getEntry) {
   )
 }
 
-module.exports = new EslintPluginWrapper({pluginName: 'dynamic'})
+module.exports = new EslintPluginWrapper({pluginName: 'wrapper'})
