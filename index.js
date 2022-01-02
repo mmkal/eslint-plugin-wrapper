@@ -255,8 +255,7 @@ class EslintPluginWrapper {
 /**
  * For a dictionary of plugins and a function to get entries, build a dictionary of rules.
  *
- * @param {Record<string, import('.').Plugin>} plugins
- * @param {(opts: {pluginName: string; plugin: import('.').Plugin; ruleName: string; rule: import('eslint').Rule.RuleModule}) => [string, any]} getEntry
+ * @type {<T>(plugins: Record<string, import('.').Plugin>, getEntry: (opts: {pluginName: string; plugin: import('.').Plugin; ruleName: string; rule: import('eslint').Rule.RuleModule}) => [string, T]) => Record<string, T>}
  */
 function ruleDict(plugins, getEntry) {
   return Object.assign(
