@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "jest"
+    "test": "npm run lint"
   },
   "repository": {
     "type": "git",
