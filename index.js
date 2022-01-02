@@ -182,10 +182,8 @@ class EslintPluginWrapper {
               }
 
               return Object.fromEntries(
-                Object.entries(config.rules).map(([key, val]) =>
-                  key.startsWith(pluginName)
-                    ? [`${this.pluginName}/${key}`, val]
-                    : [key, val],
+                Object.entries(config.rules).map(entry =>
+                  this.prefixConfigRule(entry),
                 ),
               )
             }),
@@ -225,10 +223,8 @@ class EslintPluginWrapper {
               // don't do ...config, it's not really possible to support plugins' configs extending other configs
               // especially with the crazy eslint naming conventions.
               rules: Object.fromEntries(
-                Object.entries(config.rules).map(([key, val]) =>
-                  key.startsWith(pluginName)
-                    ? [`${this.pluginName}/${key}`, val]
-                    : [key, val],
+                Object.entries(config.rules).map(entry =>
+                  this.prefixConfigRule(entry),
                 ),
               ),
             }
@@ -238,6 +234,12 @@ class EslintPluginWrapper {
     })
 
     return configs
+  }
+
+  prefixConfigRule([key, val]) {
+    const plugins = Object.keys(this.plugins)
+    const matchingPlugin = plugins.find(name => key.startsWith(`${name}/`))
+    return matchingPlugin ? [`${this.pluginName}/${key}`, val] : [key, val]
   }
 
   buildProcessors() {
@@ -268,7 +270,7 @@ function ruleDict(plugins, getEntry) {
     ...Object.entries(plugins).map(([pluginName, plugin]) =>
       Object.fromEntries(
         Object.entries(plugin.rules || {}).map(([ruleName, rule]) =>
-          getEntry({pluginName, pluginName, ruleName, rule}),
+          getEntry({pluginName, ruleName, rule}),
         ),
       ),
     ),

@@ -1,8 +1,10 @@
-const wrapper = require('..')
+const {EslintPluginWrapper} = require('..')
 const prettier = require('eslint-plugin-prettier')
 const eslint = require('eslint')
 
 test('wrapper', () => {
+  const wrapper = new EslintPluginWrapper({pluginName: 'wrapper'})
+
   wrapper.addPlugins({
     foo: {
       rules: {
@@ -60,11 +62,45 @@ test('wrapper', () => {
   })
 })
 
+test('configs referring to plugins', () => {
+  const wrapper = new EslintPluginWrapper({pluginName: 'wrapper'})
+  wrapper.addPlugins({
+    'test-plugin': {
+      rules: {
+        'test-rule': {create: () => {}},
+      },
+    },
+  })
+
+  wrapper.addPlugins({
+    'config:test-config': {
+      configs: {
+        recommended: {
+          rules: {
+            'test-plugin/test-rule': 'error',
+          },
+        },
+      },
+    },
+  })
+
+  expect(wrapper.configs.recommended).toMatchInlineSnapshot(`
+    Object {
+      "rules": Object {
+        "wrapper/default/eslint-comments": "error",
+        "wrapper/test-plugin/test-rule": "error",
+      },
+    }
+  `)
+})
+
 const ruleTester = new eslint.RuleTester()
 
 ruleTester.run(
   'default/eslint-comments',
-  wrapper.rules['default/eslint-comments'],
+  new EslintPluginWrapper({pluginName: 'wrapper'}).rules[
+    'default/eslint-comments'
+  ],
   {
     valid: [
       '// test',
