@@ -126,7 +126,10 @@ class EslintPluginWrapper {
     Object.assign(this.plugins, plugins)
   }
 
-  /** Given a rule info, get the correct string reference for it in a config (i.e. must include this plugin's name prefix) */
+  /**
+   * Given a rule info, get the correct string reference for it in a config (i.e. must include this plugin's name prefix)
+   * @param {RuleInfo} info
+   */
   configRuleReference(info) {
     return `${this.pluginName}/${info.pluginName}/${info.ruleName}`
   }
@@ -252,10 +255,12 @@ class EslintPluginWrapper {
   }
 }
 
+/** @typedef {{pluginName: string; plugin: import('.').Plugin; ruleName: string; rule: import('eslint').Rule.RuleModule}} RuleInfo */
+
 /**
  * For a dictionary of plugins and a function to get entries, build a dictionary of rules.
  *
- * @type {<T>(plugins: Record<string, import('.').Plugin>, getEntry: (opts: {pluginName: string; plugin: import('.').Plugin; ruleName: string; rule: import('eslint').Rule.RuleModule}) => [string, T]) => Record<string, T>}
+ * @type {<T>(plugins: Record<string, import('.').Plugin>, getEntry: (opts: RuleInfo) => [string, T]) => Record<string, T>}
  */
 function ruleDict(plugins, getEntry) {
   return Object.assign(
