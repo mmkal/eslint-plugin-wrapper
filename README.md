@@ -42,7 +42,7 @@ module.exports = {
 }
 ```
 
-Your codebase will now be linted with the `no-literals` rule.
+Your codebase will now be linted with the `wrapper/no-literals` rule.
 
 ### Wrap external plugins and configs
 
@@ -74,7 +74,7 @@ wrapper.addPlugins({
         extends: ['plugin:@yourcompany/recommended'],
         rules: {
           '@yourcompany/default/no-literals': 'error',
-          '@hidrb/unicorn/no-nested-ternary': 'off',
+          '@yourcompany/unicorn/no-nested-ternary': 'off',
         }
       }
     }
