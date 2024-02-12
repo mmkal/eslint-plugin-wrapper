@@ -1,6 +1,6 @@
 import type * as eslint from 'eslint'
 
-export interface Plugin {
+interface Plugin {
   rules: Record<string, eslint.Rule.RuleModule>
   configs?: Record<string, eslint.Linter.Config>
   processors?: Record<string, eslint.Linter.Processor>
