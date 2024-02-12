@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-wrapper",
-  "version": "0.0.3",
+  "version": "0.1.0-0",
   "description": "Write project-specific rules, in your own eslint config file",
   "packageManager": "pnpm@8.10.2",
   "main": "index.js",
