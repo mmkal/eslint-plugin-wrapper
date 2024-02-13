@@ -1,6 +1,6 @@
 import type * as eslint from 'eslint'
 
-interface Plugin {
+export interface Plugin {
   rules: Record<string, eslint.Rule.RuleModule>
   configs?: Record<string, eslint.Linter.Config>
   processors?: Record<string, eslint.Linter.Processor>
@@ -32,4 +32,9 @@ declare class EslintPluginWrapper {
 
 declare const eslintPluginWrapper: EslintPluginWrapper
 
-export = eslintPluginWrapper
+export declare const rules: NonNullable<Plugin['rules']>
+export declare const configs: NonNullable<Plugin['configs']>
+export declare const processors: NonNullable<Plugin['processors']>
+export declare const environments: NonNullable<Plugin['environments']>
+
+export declare const addPlugins: typeof eslintPluginWrapper.addPlugins
